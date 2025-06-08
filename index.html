@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Islands with Diagonals</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif; /* A clear, modern sans-serif */
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right bottom, #8e44ad, #3498db); /* Purple to blue gradient */
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 700px;
+            background: rgba(255, 255, 255, 0.95); /* Slightly transparent white background */
+            padding: 35px; /* Increased padding */
+            border-radius: 15px; /* More rounded corners */
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2); /* Deeper, softer shadow */
+            text-align: center;
+            backdrop-filter: blur(6px); /* Frosted glass effect */
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle light border */
+        }
+        h1 {
+            font-family: 'Montserrat', sans-serif; /* A strong, modern header font */
+            text-align: center;
+            color: #2c3e50; /* Dark blue/grey for heading */
+            margin-bottom: 25px;
+            font-weight: 700;
+            font-size: 2.5em; /* Larger title */
+            letter-spacing: -0.5px; /* Slight negative letter spacing */
+        }
+        p {
+            color: #555;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 1.05em;
+        }
+        textarea {
+            width: calc(100% - 24px); /* Adjust width for padding + border */
+            height: 150px;
+            margin-bottom: 25px;
+            font-size: 1.05em;
+            padding: 12px;
+            border: 1px solid #c0c0c0; /* Light grey border */
+            border-radius: 10px; /* More rounded */
+            resize: vertical; /* Allow vertical resizing only */
+            background-color: #f8f8f8; /* Off-white background */
+            color: #333;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.08); /* Inner shadow for depth */
+            transition: all 0.3s ease;
+        }
+        textarea:focus {
+            border-color: #3498db; /* Blue focus border */
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3); /* Blue glow on focus */
+            outline: none;
+        }
+        button {
+            background-color: #3498db; /* Bright blue button */
+            color: white;
+            padding: 14px 28px; /* Larger button */
+            border: none;
+            border-radius: 10px; /* More rounded */
+            cursor: pointer;
+            font-size: 1.15em;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3); /* Button shadow */
+        }
+        button:hover {
+            background-color: #2980b9; /* Darker blue on hover */
+            transform: translateY(-2px); /* Slight lift */
+            box-shadow: 0 7px 20px rgba(52, 152, 219, 0.4); /* Enhanced shadow on hover */
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
+        }
+        .output {
+            margin-top: 30px;
+            font-size: 1.3em;
+            color: #2c3e50; /* Dark blue/grey for output text */
+            background-color: #e8f0f7; /* Light blue background for output */
+            padding: 18px;
+            border-radius: 10px;
+            border: 1px solid #c1d3e8; /* Light blue border */
+            min-height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.05); /* Subtle inner shadow */
+        }
+        .output.error {
+            color: #c0392b; /* Red color for error */
+            background-color: #fbecec; /* Light red background for error */
+            border: 1px solid #e74c3c; /* Red border */
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Matrix Islands with Diagonals</h1>
+        <p>Enter a matrix of 0s and 1s (rows separated by new lines, cells by spaces):</p>
+        <textarea id="matrixInput" placeholder="Example:\n1 1 0 0\n0 1 0 0\n0 0 1 0\n1 0 0 1"></textarea>
+        <button onclick="countIslands()">Count Islands</button>
+        <div id="output" class="output"></div>
+    </div>
+
+    <script>
+        function countIslands() {
+            const input = document.getElementById("matrixInput").value.trim();
+            const outputElement = document.getElementById("output");
+            outputElement.classList.remove('error'); // Clear any previous error state
+
+            const rows = input.split("\n").map(row => row.trim().split(/\s+/).map(Number));
+
+            if (!isValidMatrix(rows)) {
+                outputElement.innerHTML = `Invalid matrix. Ensure all rows have the same length and contain only 0s and 1s.`;
+                outputElement.classList.add('error');
+                return;
+            }
+
+            const result = calculateIslands(rows);
+            outputElement.innerHTML = `Number of islands: ${result}`;
+        }
+
+        function isValidMatrix(matrix) {
+            if (!Array.isArray(matrix) || matrix.length === 0) return false;
+            const rowLength = matrix[0].length;
+            // Check if all rows have the same length and all cells are 0 or 1
+            return matrix.every(row => row.length === rowLength && row.every(cell => cell === 0 || cell === 1));
+        }
+
+        function calculateIslands(matrix) {
+            const rows = matrix.length;
+            const cols = matrix[0].length;
+            const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+            let islandCount = 0;
+
+            const directions = [
+                [-1, -1], [-1, 0], [-1, 1], // Top-left, Top, Top-right
+                [0, -1],             [0, 1],   // Left, Right
+                [1, -1], [1, 0], [1, 1]    // Bottom-left, Bottom, Bottom-right
+            ];
+
+            function dfs(r, c) {
+                // Boundary conditions, already visited, or water (0)
+                if (r < 0 || c < 0 || r >= rows || c >= cols || visited[r][c] || matrix[r][c] === 0) {
+                    return;
+                }
+                visited[r][c] = true; // Mark as visited
+
+                // Recursively visit all 8 connected neighbors
+                for (const [dr, dc] of directions) {
+                    dfs(r + dr, c + dc);
+                }
+            }
+
+            // Iterate through each cell in the matrix
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    // If it's land (1) and not yet visited, start a new DFS
+                    if (matrix[r][c] === 1 && !visited[r][c]) {
+                        dfs(r, c);
+                        islandCount++; // Increment island count after exploring a full island
+                    }
+                }
+            }
+            return islandCount;
+        }
+    </script>
+</body>
+</html>
